@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pterodactyl Panel Creator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 450px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      color: #fff;
+      font-size: 28px;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #22c55e, #3b82f6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header p {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .card {
+      background: rgba(2, 6, 23, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #e2e8f0;
+      margin-bottom: 8px;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+    }
+
+    .input-field::placeholder {
+      color: #64748b;
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .select-wrapper::after {
+      content: "▼";
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      pointer-events: none;
+      font-size: 12px;
+    }
+
+    select.input-field {
+      appearance: none;
+      cursor: pointer;
+    }
+
+    .btn-create {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(90deg, #22c55e, #16a34a);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-create:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(34, 197, 94, 0.3);
+    }
+
+    .btn-create:active {
+      transform: translateY(0);
+    }
+
+    .btn-create:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result-container {
+      margin-top: 25px;
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 10px;
+      padding: 20px;
+      border-left: 4px solid #22c55e;
+      display: none;
+    }
+
+    .result-container.show {
+      display: block;
+      animation: slideUp 0.4s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-title {
+      color: #22c55e;
+      font-weight: 600;
+      margin-bottom: 15px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .result-title svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .result-content {
+      color: #e2e8f0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .result-item {
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .result-item:last-child {
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #22c55e;
+      margin-top: 15px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(34, 197, 94, 0.3);
+      border-radius: 50%;
+      border-top-color: #22c55e;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .package-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 5px;
+    }
+
+    .package-option {
+      padding: 10px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px;
+      text-align: center;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 13px;
+    }
+
+    .package-option:hover {
+      border-color: #22c55e;
+      color: #e2e8f0;
+    }
+
+    .package-option.selected {
+      background: rgba(34, 197, 94, 0.1);
+      border-color: #22c55e;
+      color: #22c55e;
+      font-weight: 500;
+    }
+
+    .unlimited-badge {
+      background: linear-gradient(90deg, #f59e0b, #f97316);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px;
+      }
+      
+      .package-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Pterodactyl Panel Creator</h1>
+      <p>Buat server game panel dengan mudah</p>
+    </div>
+
+    <div class="card">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          class="input-field" 
+          placeholder="Masukkan username"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="paket">Pilih Paket</label>
+        <div class="package-grid">
+          <div class="package-option" data-value="1gb">1 GB</div>
+          <div class="package-option" data-value="2gb">2 GB</div>
+          <div class="package-option" data-value="3gb">3 GB</div>
+          <div class="package-option" data-value="4gb">4 GB</div>
+          <div class="package-option" data-value="5gb">5 GB</div>
+          <div class="package-option" data-value="6gb">6 GB</div>
+          <div class="package-option" data-value="7gb">7 GB</div>
+          <div class="package-option" data-value="8gb">8 GB</div>
+          <div class="package-option" data-value="9gb">9 GB</div>
+          <div class="package-option" data-value="10gb">10 GB</div>
+          <div class="package-option" data-value="unli">
+            Unlimited <span class="unlimited-badge">PRO</span>
+          </div>
+        </div>
+        <select id="paket" class="input-field select-wrapper" style="display: none;">
+          <option value="1gb">1 GB</option>
+          <option value="2gb">2 GB</option>
+          <option value="3gb">3 GB</option>
+          <option value="4gb">4 GB</option>
+          <option value="5gb">5 GB</option>
+          <option value="6gb">6 GB</option>
+          <option value="7gb">7 GB</option>
+          <option value="8gb">8 GB</option>
+          <option value="9gb">9 GB</option>
+          <option value="10gb">10 GB</option>
+          <option value="unli">Unlimited</option>
+        </select>
+      </div>
+
+      <button id="createBtn" class="btn-create" onclick="createPanel()">
+        BUAT SERVER
+      </button>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div> Membuat server, harap tunggu...
+      </div>
+
+      <div class="result-container" id="resultContainer">
+        <div class="result-title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+          </svg>
+          Server Berhasil Dibuat
+        </div>
+        <div class="result-content" id="result"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Konfigurasi sesuai dengan yang Anda berikan
+    const domain = "https://loginpanelku.xzv.web.id";
+    const apikey = "ptla_2aBxf4H7GBqdimsJ1XliGWTUFW8pTiDIC9TEgRlGY2f";
+    const nestid = 5;
+    const egg = 15;
+    const loc = 1;
+    const panelLink = "https://loginpanelku.xzv.web.id";
+
+    // Spesifikasi paket
+    function spec(paket) {
+      const data = {
+        "1gb": [1000, 1000, 40],
+        "2gb": [2000, 1000, 60],
+        "3gb": [3000, 2000, 80],
+        "4gb": [4000, 2000, 100],
+        "5gb": [5000, 3000, 120],
+        "6gb": [6000, 3000, 140],
+        "7gb": [7000, 4000, 160],
+        "8gb": [8000, 4000, 180],
+        "9gb": [9000, 5000, 200],
+        "10gb": [10000, 5000, 220],
+        "unli": [0, 0, 0]
+      };
+      return data[paket];
+    }
+
+    // Setup package selection
+    document.addEventListener('DOMContentLoaded', function() {
+      const packageOptions = document.querySelectorAll('.package-option');
+      const selectElement = document.getElementById('paket');
+      
+      // Set default selection
+      packageOptions[0].classList.add('selected');
+      
+      // Add click event to package options
+      packageOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          // Remove selected class from all options
+          packageOptions.forEach(opt => opt.classList.remove('selected'));
+          
+          // Add selected class to clicked option
+          this.classList.add('selected');
+          
+          // Update hidden select element
+          const value = this.getAttribute('data-value');
+          selectElement.value = value;
+        });
+      });
+      
+      // Also update package grid when select changes (as backup)
+      selectElement.addEventListener('change', function() {
+        packageOptions.forEach(opt => {
+          opt.classList.remove('selected');
+          if (opt.getAttribute('data-value') === this.value) {
+            opt.classList.add('selected');
+          }
+        });
+      });
+    });
+
+    // Format tanggal
+    function formatTanggal(timestamp) {
+      const date = new Date(timestamp);
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      };
+      return date.toLocaleDateString('id-ID', options);
+    }
+
+    // Format kapital
+    function capital(text) {
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
+    // Main function to create panel
+    async function createPanel() {
+      const user = document.getElementById("username").value.toLowerCase().trim();
+      const paket = document.getElementById("paket").value;
+      const resultEl = document.getElementById("result");
+      const resultContainer = document.getElementById("resultContainer");
+      const loadingEl = document.getElementById("loading");
+      const createBtn = document.getElementById("createBtn");
+      
+      // Validasi input
+      if (!user) {
+        alert("Username tidak boleh kosong!");
+        document.getElementById("username").focus();
+        return;
+      }
+      
+      // Tampilkan loading
+      loadingEl.classList.add("show");
+      createBtn.disabled = true;
+      createBtn.textContent = "MEMBUAT...";
+      resultContainer.classList.remove("show");
+      
+      try {
+        const [ram, disk, cpu] = spec(paket);
+        const password = user + Math.random().toString(16).slice(2, 8);
+        const email = user + "@franki.com";
+        const serverName = capital(user) + " Server";
+        
+        // CREATE USER
+        resultEl.textContent = "Membuat user...";
+        let userResponse = await fetch(domain + "/api/application/users", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + apikey,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({
+            email,
+            username: user,
+            first_name: serverName,
+            last_name: "Server",
+            language: "en",
+            password
+          })
+        });
+        
+        const userData = await userResponse.json();
+        
+        if (userData.errors) {
+          throw new Error(JSON.stringify(userData.errors, null, 2));
+        }
+        
+        const uid = userData.attributes.id;
+        
+        // GET EGG DATA
+        resultEl.textContent = "Mengambil data egg...";
+        let eggResponse = await fetch(
+          `${domain}/api/application/nests/${nestid}/eggs/${egg}?include=variables`,
+          { 
+            headers: { "Authorization": "Bearer " + apikey } 
+          }
+        );
+        
+        const eggData = await eggResponse.json();
+        
+        // CREATE SERVER
+        resultEl.textContent = "Membuat server...";
+        let serverResponse = await fetch(domain + "/api/application/servers", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + apikey,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: serverName,
+            description: formatTanggal(Date.now()),
+            user: uid,
+            egg: egg,
+            docker_image: "ghcr.io/parkervcp/yolks:nodejs_18",
+            startup: eggData.attributes.startup,
+            environment: {
+              "INST": "npm",
+              "USER_UPLOAD": "0",
+              "AUTO_UPDATE": "0",
+              "CMD_RUN": "npm start"
+            },
+            limits: {
+              memory: ram,
+              swap: 0,
+              disk: disk,
+              io: 500,
+              cpu: cpu
+            },
+            feature_limits: {
+              databases: 5,
+              backups: 5,
+              allocations: 5
+            },
+            deploy: {
+              locations: [loc],
+              dedicated_ip: false,
+              port_range: []
+            }
+          })
+        });
+        
+        const serverData = await serverResponse.json();
+        
+        if (serverData.errors) {
+          throw new Error(JSON.stringify(serverData.errors, null, 2));
+        }
+        
+        const server = serverData.attributes;
+        
+        // Format hasil seperti WhatsApp bot
+        const formatSpec = (value) => value === 0 ? "Unlimited" : 
+          value >= 1000 ? (value/1000) + "GB" : value + "MB";
+        
+        const formatCPU = (value) => value === 0 ? "Unlimited" : value + "%";
+        
+        const resultHTML = `
+📡 *ID SERVER (${server.id})*
+👤 *USERNAME :* ${userData.attributes.username}
+🔐 *PASSWORD :* ${password}
+🗓️ ${formatTanggal(Date.now())}
+
+- 🌐 SPEKSIFIKASI SERVER
+> RAM : ${formatSpec(ram)}
+> DISK : ${formatSpec(disk)}
+> CPU : ${formatCPU(cpu)}
+
+🔗 *LINK PANEL*
+> ${panelLink}
+
+> *NOTE*
+* JANGAN SEBAR LINK
+* JANGAN PASANG SC DDOS
+* SIMPAN DATA PANEL DENGAN BAIK
+* INGIN CLAIM GARANSI WAJIB BAWA BUKTI TRANSAKSI
+* GARANSI 15 HARI
+
+> *TUTORIAL RUN BOT VIA PANEL : https://youtu.be/7p7CgbfLmsQ?si=foa1EGsBxFymf6Ln*
+`;
+        
+        // Format untuk tampilan HTML
+        resultEl.innerHTML = `
+          <div class="result-item"><strong>ID SERVER:</strong> ${server.id}</div>
+          <div class="result-item"><strong>USERNAME:</strong> ${userData.attributes.username}</div>
+          <div class="result-item"><strong>PASSWORD:</strong> ${password}</div>
+          <div class="result-item"><strong>EMAIL:</strong> ${email}</div>
+          <div class="result-item"><strong>TANGGAL:</strong> ${formatTanggal(Date.now())}</div>
+          <br>
+          <div class="result-item"><strong>SPESIFIKASI SERVER:</strong></div>
+          <div class="result-item"><strong>RAM:</strong> ${formatSpec(ram)}</div>
+          <div class="result-item"><strong>DISK:</strong> ${formatSpec(disk)}</div>
+          <div class="result-item"><strong>CPU LIMIT:</strong> ${formatCPU(cpu)}</div>
+          <br>
+          <div class="result-item"><strong>LINK PANEL:</strong> ${panelLink}</div>
+          <br>
+          <div class="result-item"><strong>STATUS:</strong> <span style="color:#22c55e">AKTIF</span></div>
+          <br>
+          <div class="result-item"><strong>NOTE:</strong></div>
+          <div class="result-item">- Jangan sebar link</div>
+          <div class="result-item">- Jangan pasang SC DDOS</div>
+          <div class="result-item">- Simpan data panel dengan baik</div>
+          <div class="result-item">- Ingin claim garansi wajib bawa bukti transaksi</div>
+          <div class="result-item">- Garansi 15 hari</div>
+        `;
+        
+        // Tampilkan hasil
+        resultContainer.classList.add("show");
+        
+        // Tampilkan juga di console untuk copy
+        console.log("=== DETAIL AKUN PANEL ===");
+        console.log(resultHTML);
+        
+      } catch (error) {
+        // Tampilkan error
+        resultEl.textContent = `ERROR: ${error.message}`;
+        resultContainer.classList.add("show");
+        console.error("Error:", error);
+      } finally {
+        // Sembunyikan loading
+        loadingEl.classList.remove("show");
+        createBtn.disabled = false;
+        createBtn.textContent = "BUAT SERVER";
+      }
+    }
+    
+    // Enter key support
+    document.getElementById("username").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        createPanel();
+      }
+    });
+  </script>
+</body>
+</html>
